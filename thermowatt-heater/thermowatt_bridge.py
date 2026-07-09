@@ -1,8 +1,6 @@
-import sys, json, time, uuid, os, requests, urllib3
+import sys, json, time, uuid, os, requests
 import paho.mqtt.client as mqtt
 from paho.mqtt.enums import CallbackAPIVersion
-
-urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 # --- CONFIGURATION ---
 EMAIL = sys.argv[1] if len(sys.argv) > 1 else None
@@ -12,6 +10,10 @@ MQTT_HOST = os.getenv("MQTT_HOST", "core-mosquitto")
 MQTT_PORT = int(os.getenv("MQTT_PORT", 1883))
 MQTT_USER = os.getenv("MQTT_USER")
 MQTT_PASS = os.getenv("MQTT_PASSWORD")
+# App version string sent to the Thermowatt backend. The backend has been observed
+# to reject requests from stale app versions, so this is overridable via add-on
+# config/env without needing a code change if Thermowatt ships a new app release.
+APP_VERSION = os.getenv("APP_VERSION", "3.14")
 
 class MyThermowattBridge:
     API_KEY = "YVjArWssxKH631jv1dnnWOTr6gijsSAGz7rQJ4hJoUNRffxYvbQaMbePBEZalena"
@@ -62,7 +64,7 @@ class MyThermowattBridge:
         self.session.headers.update({
             "app": "MyThermowatt",
             "platform": "iOS",
-            "version": "3.14",
+            "version": APP_VERSION,
             "lang": "en"
         })
 
@@ -77,7 +79,7 @@ class MyThermowattBridge:
         self.session.headers["x-api-key"] = self.API_KEY
         
         payload = {"username": EMAIL, "password": PASSWORD, "device_id": self.config["device_uuid"]}
-        r = self.session.post(f"{self.BASE_URL}/login", json=payload, verify=False)
+        r = self.session.post(f"{self.BASE_URL}/login", json=payload, verify=True)
         r.raise_for_status()
         res = r.json()['result']
         self._update_auth(res['accessToken'], res['refreshToken'])
@@ -88,7 +90,7 @@ class MyThermowattBridge:
         self.session.headers["x-api-key"] = self.API_KEY
         
         payload = {"username": EMAIL, "refreshToken": self.config["refresh_token"]}
-        r = self.session.post(f"{self.BASE_URL}/refresh", json=payload, verify=False)
+        r = self.session.post(f"{self.BASE_URL}/refresh", json=payload, verify=True)
         if r.status_code == 200:
             res = r.json()['result']
             self._update_auth(res['accessToken'], res['refreshToken'])
@@ -103,7 +105,7 @@ class MyThermowattBridge:
         if serial:
             self.session.headers["seriale"] = serial
         
-        resp = self.session.request(method, url, verify=False, **kwargs)
+        resp = self.session.request(method, url, verify=True, **kwargs)
         
         # Handle 401 - try refresh
         if resp.status_code == 401:
@@ -112,7 +114,7 @@ class MyThermowattBridge:
                 self._reset_headers()
                 if serial:
                     self.session.headers["seriale"] = serial
-                resp = self.session.request(method, url, verify=False, **kwargs)
+                resp = self.session.request(method, url, verify=True, **kwargs)
         
         return resp
 

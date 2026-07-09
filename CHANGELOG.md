@@ -5,6 +5,22 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.3.1] - 2026-07-09 (fork)
+
+### Security
+
+- Re-enabled TLS certificate verification on all requests to the Thermowatt API (was previously disabled with `verify=False`, exposing credentials/tokens to potential interception).
+
+### Removed
+
+- Unused `client.crt`, `client.key`, `root.pem` files left over from the removed AWS IoT MQTT bridge; no longer copied into the Docker image.
+
+### Added
+
+- `app_version` is now a configurable add-on option instead of a hardcoded `"3.14"`, since the Thermowatt backend appears to reject requests from stale app versions.
+
+---
+
 ## [1.3.0] - 2026-01-27
 
 ### Removed

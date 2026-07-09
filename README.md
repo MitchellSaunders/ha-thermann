@@ -1,8 +1,19 @@
 # Thermowatt Smart Boiler Bridge for Home Assistant
 
-This add-on allows you to integrate Thermowatt-based smart water heaters into Home Assistant using MQTT. It bridges the gap between the Thermowatt cloud and your local Home Assistant instance.
+This add-on allows you to integrate Thermowatt-based smart water heaters (including Thermann Smart Electric) into Home Assistant using MQTT. It bridges the gap between the Thermowatt cloud and your local Home Assistant instance.
+
+This is a fork of [waterheater-dev/ha-thermowatt-heater](https://github.com/waterheater-dev/ha-thermowatt-heater), audited and patched — see "Changes from upstream" below.
+
+> Replace the badge link below with your own fork's URL once you've pushed this to GitHub, e.g.
+> `https://my.home-assistant.io/redirect/supervisor_add_addon_repository/?repository_url=https%3A%2F%2Fgithub.com%2F<your-username>%2Fha-thermowatt-heater`
 
 [![Open your Home Assistant instance and show the add add-on repository dialog with a specific repository URL pre-filled.](https://my.home-assistant.io/badges/supervisor_add_addon_repository.svg)](https://my.home-assistant.io/redirect/supervisor_add_addon_repository/?repository_url=https%3A%2F%2Fgithub.com%2Fwaterheater-dev%2Fha-thermowatt-heater)
+
+## Changes from upstream
+
+- **Fixed:** TLS certificate verification was disabled (`verify=False`) on every request to the Thermowatt API, including login. This has been re-enabled. Your credentials and tokens are now sent over a properly validated HTTPS connection instead of one vulnerable to interception.
+- **Removed:** unused `client.crt` / `client.key` / `root.pem` files (leftovers from a previous AWS IoT MQTT approach the code no longer uses).
+- **Added:** the app `version` header sent to Thermowatt is now a configurable add-on option (`app_version`, defaults to `3.14`) instead of hardcoded. If Thermowatt has since required a newer app version and that's why this stopped working, try bumping this in the add-on's Configuration tab without needing to edit code.
 
 ## Features
 
@@ -24,7 +35,10 @@ This add-on allows you to integrate Thermowatt-based smart water heaters into Ho
 ```yaml
 email: "your-email@example.com"
 password: "your-password"
+app_version: "3.14"
 ```
+
+`app_version` should match the version reported by the current Thermann Control / MyThermowatt app in your phone's app store listing. If polling fails with authentication errors, check the app's current version number first.
 
 ## Dashboard
 
