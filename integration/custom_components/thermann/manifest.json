@@ -1,0 +1,11 @@
+{
+  "domain": "thermann",
+  "name": "Thermann Smart",
+  "codeowners": ["@MitchellSaunders"],
+  "config_flow": true,
+  "documentation": "https://github.com/MitchellSaunders/ha-thermann",
+  "issue_tracker": "https://github.com/MitchellSaunders/ha-thermann/issues",
+  "iot_class": "cloud_polling",
+  "requirements": ["requests>=2.31.0"],
+  "version": "0.1.0"
+}

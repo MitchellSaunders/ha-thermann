@@ -1,0 +1,21 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Connect your Thermowatt / Thermann Smart account",
+        "data": {
+          "email": "Email",
+          "password": "Password",
+          "app_version": "App version (advanced - only change if setup fails)"
+        }
+      }
+    },
+    "error": {
+      "invalid_auth": "Login failed. Check your email/password, or try updating the App version field to match the current Thermann Control / MyThermowatt app version.",
+      "unknown": "Unexpected error occurred while connecting."
+    },
+    "abort": {
+      "already_configured": "This account is already configured."
+    }
+  }
+}
