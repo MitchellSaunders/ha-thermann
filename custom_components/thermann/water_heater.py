@@ -81,11 +81,6 @@ class ThermowattWaterHeater(CoordinatorEntity[ThermowattCoordinator], WaterHeate
         except (TypeError, ValueError):
             return None
 
-    @property
-    def extra_state_attributes(self) -> dict[str, Any]:
-        water_heater_sts = int(self._status.get("WaterHeaterSts", 0) or 0)
-        return {"heating": bool(water_heater_sts & 1)}
-
     async def async_set_temperature(self, **kwargs: Any) -> None:
         temp = int(kwargs[ATTR_TEMPERATURE])
         await self.hass.async_add_executor_job(

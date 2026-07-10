@@ -29,3 +29,6 @@ OPERATION_MODES = ["off", "eco", "manual", "auto", "holiday"]
 MIN_TEMP = 20
 MAX_TEMP = 75
 DEFAULT_TEMP = 60
+
+CONF_ELEMENT_KW = "element_kw"
+DEFAULT_ELEMENT_KW = 3.6  # typical AU electric HWS element size; user-configurable

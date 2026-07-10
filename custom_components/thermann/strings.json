@@ -17,5 +17,24 @@
     "abort": {
       "already_configured": "This account is already configured."
     }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Thermann Smart settings",
+        "data": {
+          "element_kw": "Heating element power (kW) - used to estimate energy use"
+        }
+      }
+    }
+  },
+  "entity": {
+    "sensor": {
+      "current_temperature": { "name": "Temperature" },
+      "energy": { "name": "Energy" }
+    },
+    "binary_sensor": {
+      "heating": { "name": "Heating" }
+    }
   }
 }

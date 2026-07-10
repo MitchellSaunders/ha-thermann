@@ -8,11 +8,11 @@ import voluptuous as vol
 
 from homeassistant import config_entries
 from homeassistant.const import CONF_EMAIL, CONF_PASSWORD
-from homeassistant.core import HomeAssistant
+from homeassistant.core import HomeAssistant, callback
 from homeassistant.exceptions import HomeAssistantError
 
 from .api import ThermowattAuthError, ThermowattClient
-from .const import CONF_APP_VERSION, DEFAULT_APP_VERSION, DOMAIN
+from .const import CONF_APP_VERSION, CONF_ELEMENT_KW, DEFAULT_APP_VERSION, DEFAULT_ELEMENT_KW, DOMAIN
 
 STEP_USER_DATA_SCHEMA = vol.Schema(
     {
@@ -44,6 +44,11 @@ class ThermowattSmartConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
     VERSION = 1
 
+    @staticmethod
+    @callback
+    def async_get_options_flow(config_entry: config_entries.ConfigEntry) -> "ThermannOptionsFlow":
+        return ThermannOptionsFlow(config_entry)
+
     async def async_step_user(self, user_input: dict[str, Any] | None = None):
         errors: dict[str, str] = {}
         if user_input is not None:
@@ -65,6 +70,23 @@ class ThermowattSmartConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         return self.async_show_form(
             step_id="user", data_schema=STEP_USER_DATA_SCHEMA, errors=errors
         )
+
+
+class ThermannOptionsFlow(config_entries.OptionsFlow):
+    """Lets the user set the heating element's power rating for energy estimation."""
+
+    def __init__(self, config_entry: config_entries.ConfigEntry) -> None:
+        self.config_entry = config_entry
+
+    async def async_step_init(self, user_input: dict[str, Any] | None = None):
+        if user_input is not None:
+            return self.async_create_entry(title="", data=user_input)
+
+        current_kw = self.config_entry.options.get(CONF_ELEMENT_KW, DEFAULT_ELEMENT_KW)
+        schema = vol.Schema(
+            {vol.Required(CONF_ELEMENT_KW, default=current_kw): vol.Coerce(float)}
+        )
+        return self.async_show_form(step_id="init", data_schema=schema)
 
 
 class InvalidAuth(HomeAssistantError):
