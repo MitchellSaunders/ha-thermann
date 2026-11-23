@@ -8,14 +8,25 @@
           "password": "Password",
           "app_version": "App version (advanced - only change if setup fails)"
         }
+      },
+      "reauth_confirm": {
+        "title": "Re-authenticate Thermowatt / Thermann Smart",
+        "description": "Polling for {email} has stopped because the session could not be refreshed or the account is being rate limited. If you were locked out, wait until you can sign in to the app again before submitting.",
+        "data": {
+          "password": "Password",
+          "app_version": "App version (advanced - only change if login fails)"
+        }
       }
     },
     "error": {
       "invalid_auth": "Login failed. Check your email/password, or try updating the App version field to match the current Thermann Control / MyThermowatt app version.",
-      "unknown": "Unexpected error occurred while connecting."
+      "unknown": "Unexpected error occurred while connecting.",
+      "cannot_connect": "Could not reach the Thermowatt cloud. Try again later.",
+      "rate_limited": "Thermowatt is rate limiting this account. Wait until you can sign in to the app again, then retry."
     },
     "abort": {
-      "already_configured": "This account is already configured."
+      "already_configured": "This account is already configured.",
+      "reauth_successful": "Re-authentication successful."
     }
   },
   "options": {
@@ -23,18 +34,25 @@
       "init": {
         "title": "Thermann Smart settings",
         "data": {
-          "element_kw": "Heating element power (kW) - used to estimate energy use"
+          "element_kw": "Heating element power (kW) - used to estimate energy use",
+          "poll_interval": "Poll interval in seconds (30-3600). Lower values risk the account being rate limited."
         }
       }
     }
   },
   "entity": {
     "sensor": {
-      "current_temperature": { "name": "Temperature" },
-      "energy": { "name": "Energy" }
+      "current_temperature": {
+        "name": "Temperature"
+      },
+      "energy": {
+        "name": "Energy"
+      }
     },
     "binary_sensor": {
-      "heating": { "name": "Heating" }
+      "heating": {
+        "name": "Heating"
+      }
     }
   }
 }

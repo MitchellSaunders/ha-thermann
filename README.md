@@ -23,7 +23,7 @@ This started as a rewrite of
 3. Search for "Thermowatt Smart", install, restart Home Assistant
 
 ### Manual
-Copy `custom_components/thermowatt_smart/` into your `config/custom_components/` directory and restart Home Assistant.
+Copy `custom_components/thermann/` into your `config/custom_components/` directory and restart Home Assistant.
 
 ## Setup
 
@@ -39,7 +39,19 @@ backend has been observed to reject requests claiming an old app version).
 One `water_heater` entity per boiler on your account, with:
 - Current and target temperature
 - Operation modes: `off`, `eco`, `manual`, `auto`, `holiday`
-- A `heating` attribute (whether the element is actively on right now)
+- A `Heating` binary sensor (whether the element is actively on right now)
+- A `Temperature` sensor and an estimated `Energy` sensor (kWh, from heating time x element power)
+
+## Polling and rate limits
+
+Thermowatt's cloud locks accounts that make too many requests. This integration:
+
+- Polls `/status` once per heater every **60 s** by default (configurable, 30-3600 s, under Configure).
+- Backs off (doubling, up to 15 min, honouring `Retry-After`) after HTTP 429 or other errors, and returns to the normal interval after a success.
+- Never retries a password login on its own. If the session can't be refreshed, polling stops and Home Assistant asks you to re-authenticate.
+- Saves the session tokens, so restarting Home Assistant doesn't send a new login.
+
+If your account was locked, wait until you can sign in to the app again before re-authenticating.
 
 ## Known limitations
 

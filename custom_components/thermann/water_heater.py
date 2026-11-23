@@ -10,12 +10,14 @@ from homeassistant.components.water_heater import (
 )
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import ATTR_TEMPERATURE, UnitOfTemperature
-from homeassistant.core import HomeAssistant
+from homeassistant.core import HomeAssistant, callback
+from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from . import ThermowattCoordinator
+from .api import ThermowattApiError
 from .const import CMD_TO_MODE, DEFAULT_TEMP, DOMAIN, MAX_TEMP, MIN_TEMP, OPERATION_MODES
 
 _LOGGER = logging.getLogger(__name__)
@@ -66,11 +68,21 @@ class ThermowattWaterHeater(CoordinatorEntity[ThermowattCoordinator], WaterHeate
         val = self._status.get("T_Avg")
         return float(val) if val is not None else None
 
+    @callback
+    def _handle_coordinator_update(self) -> None:
+        # Remember the last real setpoint so switching back to "manual"
+        # restores it. Done here rather than in a property getter.
+        val = self._status.get("T_SetPoint")
+        try:
+            if val is not None:
+                self._last_setpoint = int(float(val))
+        except (TypeError, ValueError):
+            pass
+        super()._handle_coordinator_update()
+
     @property
     def target_temperature(self) -> float | None:
         val = self._status.get("T_SetPoint")
-        if val is not None:
-            self._last_setpoint = int(float(val))
         return float(val) if val is not None else None
 
     @property
@@ -81,16 +93,20 @@ class ThermowattWaterHeater(CoordinatorEntity[ThermowattCoordinator], WaterHeate
         except (TypeError, ValueError):
             return None
 
-    async def async_set_temperature(self, **kwargs: Any) -> None:
-        temp = int(kwargs[ATTR_TEMPERATURE])
-        await self.hass.async_add_executor_job(
-            self.coordinator.client.set_temperature, self._serial, temp
-        )
-        self._last_setpoint = temp
+    async def _async_send(self, func, *args) -> None:
+        try:
+            await self.hass.async_add_executor_job(func, *args)
+        except ThermowattApiError as err:
+            raise HomeAssistantError(f"Thermowatt command failed: {err}") from err
+        # Debounced by the coordinator, so rapid changes don't each poll.
         await self.coordinator.async_request_refresh()
 
+    async def async_set_temperature(self, **kwargs: Any) -> None:
+        temp = int(kwargs[ATTR_TEMPERATURE])
+        await self._async_send(self.coordinator.client.set_temperature, self._serial, temp)
+        self._last_setpoint = temp
+
     async def async_set_operation_mode(self, operation_mode: str) -> None:
-        await self.hass.async_add_executor_job(
+        await self._async_send(
             self.coordinator.client.set_mode, self._serial, operation_mode, self._last_setpoint
         )
-        await self.coordinator.async_request_refresh()
